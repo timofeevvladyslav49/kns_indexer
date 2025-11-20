@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+  database:
+    image: postgres:18.1-alpine3.22
+    env_file: .env
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  database_data:
