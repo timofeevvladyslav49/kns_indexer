@@ -11,7 +11,7 @@ the "official" one.
 ## Key Features
 
 - **100% on-chain operations** - no off-chain dependencies or trusted parties
-- Token-based domains - enables true atomic swaps and composability with DeFi
+- Token-based usernames - enables true atomic swaps and composability with DeFi
 - Decentralized resolution - names can resolve not only to blockchain addresses but also to IPFS/IPNS content hashes
 - Fully reproducible - run your own node and query API without relying on third parties
 - Easy deployment via Docker Compose
@@ -30,15 +30,13 @@ Every KNS name is a token living on the Keeta blockchain. This design unlocks:
 
 ## Roadmap
 
-| Status | Feature                            | Description                                                                      |
-|--------|------------------------------------|----------------------------------------------------------------------------------|
-| ⏳      | Public REST API                    | Allow dApps and wallets to resolve names and search without running a node       |
-| ⏳      | Comprehensive test suite           | Unit, integration, and e2e tests                                                 |
-| ⏳      | Full migration to Go               | Significant performance boost and lower resource usage                           |
-| ⏳      | Primary name                       | Set and resolve primary name per address                                         |
-| ⏳      | IPFS/IPNS content resolution       | Enable decentralized websites and permanent content linking via `.keeta` domains |
-| ✅      | Event listening & Postgres storage | Already working                                                                  |
-| ✅      | Docker Compose deployment          | One-command start for developers and node operators                              |
+| Status | Feature                  | Description                                                                |
+|--------|--------------------------|----------------------------------------------------------------------------|
+| ⏳      | Primary name             | Set and resolve primary name per address                                   |
+| ⏳      | IPFS content resolution  | Enable decentralized websites                                              |
+| ⏳      | Public REST API          | Allow dApps and wallets to resolve names and search without running a node |
+| ⏳      | Comprehensive test suite | Unit, integration, and e2e tests                                           |
+| ⏳      | Full migration to Go     | Significant performance boost and lower resource usage                     |
 
 ## Quick Start
 

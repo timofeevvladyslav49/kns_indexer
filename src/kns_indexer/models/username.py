@@ -8,8 +8,8 @@ from kns_indexer.models.base import Base
 
 
 @final
-class DomainModel(Base):
-    domain: Mapped[str] = mapped_column(primary_key=True)
+class UsernameModel(Base):
+    username: Mapped[str] = mapped_column(primary_key=True)
     address: Mapped[str]
     owner: Mapped[str]
     timestamp: Mapped[datetime] = mapped_column(

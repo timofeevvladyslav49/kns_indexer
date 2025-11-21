@@ -9,7 +9,7 @@ from requests import Session
 from sqlalchemy import Engine, select, update
 from sqlalchemy.dialects.postgresql import insert
 
-from kns_indexer.models import DomainModel, SettingsModel
+from kns_indexer.models import SettingsModel, UsernameModel
 
 LOGGER: Final = logging.getLogger(__name__)
 
@@ -20,9 +20,12 @@ TRANSACTIONS_PAGE_LIMIT: Final = 100
 LAUNCH_DATE: Final = "2025-11-20"
 
 TOKEN_NAME: Final = "KNS"
-DOMAIN: Final = "keeta"
 
 USERNAME_PATTERN: Final = re.compile(r"^[A-Za-z0-9_]{1,32}$")
+
+FAUCET_ADDRESS: Final = (
+    "keeta_aabszsbrqppriqddrkptq5awubshpq3cgsoi4rc624xm6phdt74vo5w7wipwtmiw"
+)
 
 
 @final
@@ -91,34 +94,35 @@ def listen_instructions(engine: Engine, /) -> None:
                             token_account=block["account"],
                             last_block_operations=last_block_operations,
                         ):
-                            domain = db_session.scalar(
-                                insert(DomainModel)
+                            username = db_session.scalar(
+                                insert(UsernameModel)
                                 .values(
-                                    domain=operation["description"].lower(),
+                                    username=operation["description"].lower(),
                                     address=block["account"],
                                     owner=block["signer"],
                                     timestamp=block_timestamp,
                                 )
                                 .on_conflict_do_nothing()
-                                .returning(DomainModel),
+                                .returning(UsernameModel),
                             )
-                            if isinstance(domain, DomainModel):
+                            if isinstance(username, UsernameModel):
                                 post_commit_logs.append(
-                                    f"{block['signer']} inscribed domain {operation['description'].lower()}",
+                                    f"{block['signer']} inscribed username {operation['description'].lower()}",
                                 )
                         elif _is_transfer_instruction(operation):
-                            domain = db_session.scalar(
-                                update(DomainModel)
+                            username = db_session.scalar(
+                                update(UsernameModel)
                                 .values(owner=operation["to"])
                                 .where(
-                                    DomainModel.address == operation["token"],
-                                    DomainModel.owner == block["account"],
+                                    UsernameModel.address
+                                    == operation["token"],
+                                    UsernameModel.owner == block["account"],
                                 )
-                                .returning(DomainModel),
+                                .returning(UsernameModel),
                             )
-                            if isinstance(domain, DomainModel):
+                            if isinstance(username, UsernameModel):
                                 post_commit_logs.append(
-                                    f"{block['account']} transferred domain {domain.domain} to {operation['to']}",
+                                    f"{block['account']} transferred username {username.username} to {operation['to']}",
                                 )
 
                     last_block_timestamp = block_timestamp
@@ -212,4 +216,15 @@ def _is_transfer_instruction(operation: dict[str, Any], /) -> bool:
     return (
         operation["type"] == OperationType.SEND
         and operation["amount"] == "0x1"
+    )
+
+
+def _is_set_primary_name_or_cdi_instruction(
+    operation: dict[str, Any],
+    /,
+) -> bool:
+    return (
+        operation["type"] == OperationType.SEND
+        and operation["to"] == FAUCET_ADDRESS
+        and operation.get("extra") is not None
     )
