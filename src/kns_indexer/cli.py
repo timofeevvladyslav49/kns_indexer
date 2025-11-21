@@ -3,7 +3,7 @@ import os
 from typing import Final
 
 from sqlalchemy import URL, create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 
 from kns_indexer.listener import listen_instructions
 from kns_indexer.models import SettingsModel
@@ -25,10 +25,13 @@ def main() -> None:
 
     Base.metadata.create_all(engine)
 
-    with Session(engine) as session:
-        if not session.get(SettingsModel, 1):
-            session.add(SettingsModel(id=1, page=1))
-            session.commit()
+    with engine.connect() as connection:
+        connection.execute(
+            insert(SettingsModel)
+            .values(id=1, page=1)
+            .on_conflict_do_nothing(),
+        )
+        connection.commit()
 
     listen_instructions(engine)
 

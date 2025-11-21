@@ -1,15 +1,14 @@
 import logging
 import time
 from datetime import datetime
-from enum import IntEnum
+from enum import IntEnum, unique
 from typing import Any, Final, final
 
 import orjson
 import tldextract
 from requests import Session
-from sqlalchemy import Engine, update
+from sqlalchemy import Engine, select, update
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session as SqlalchemySession
 
 from kns_indexer.models import DomainModel, SettingsModel
 
@@ -26,6 +25,7 @@ DOMAIN: Final = "keeta"
 
 
 @final
+@unique
 class OperationType(IntEnum):
     SEND = 0
     SET_INFO = 2
@@ -33,19 +33,25 @@ class OperationType(IntEnum):
 
 
 def listen_instructions(engine: Engine, /) -> None:
+    with engine.connect() as db_session:
+        settings = db_session.scalar(
+            select(SettingsModel).where(SettingsModel.id == 1),
+        )
+        current_page = settings.page
+        last_block_timestamp = settings.last_block_timestamp
+        last_block_hash = settings.last_block_hash
+
     with Session() as session:
         while True:
-            with SqlalchemySession(engine) as db_session:
-                settings = db_session.get_one(SettingsModel, 1)
-
+            with engine.connect() as db_session:
                 LOGGER.debug(
                     "Loaded settings: page=%s last_block_timestamp=%s last_block_hash=%s",
-                    settings.page,
-                    settings.last_block_timestamp,
-                    settings.last_block_hash,
+                    current_page,
+                    last_block_timestamp,
+                    last_block_hash,
                 )
 
-                pagination = _get_pagination(session, page=settings.page)
+                pagination = _get_pagination(session, page=current_page)
 
                 LOGGER.debug("Pagination: %s", pagination)
 
@@ -59,11 +65,11 @@ def listen_instructions(engine: Engine, /) -> None:
                     block_timestamp = datetime.fromisoformat(block["date"])
 
                     if (
-                        settings.last_block_timestamp is not None
-                        and settings.last_block_hash is not None
+                        last_block_timestamp is not None
+                        and last_block_hash is not None
                         and (
-                            block_timestamp < settings.last_block_timestamp
-                            or block["$hash"] == settings.last_block_hash
+                            block_timestamp < last_block_timestamp
+                            or block["$hash"] == last_block_hash
                         )
                     ):  # skip already processed blocks
                         LOGGER.debug(
@@ -72,7 +78,11 @@ def listen_instructions(engine: Engine, /) -> None:
                         )
                         continue
 
-                    LOGGER.debug("Processing block %s at %s", block["$hash"], block_timestamp)
+                    LOGGER.debug(
+                        "Processing block %s at %s",
+                        block["$hash"],
+                        block_timestamp,
+                    )
 
                     for operation in block["operations"]:
                         if _is_inscribe_instruction(
@@ -89,10 +99,12 @@ def listen_instructions(engine: Engine, /) -> None:
                                     timestamp=block_timestamp,
                                 )
                                 .on_conflict_do_nothing()
-                                .returning(DomainModel)
+                                .returning(DomainModel),
                             )
                             if isinstance(domain, DomainModel):
-                                post_commit_logs.append(f"{block["signer"]} inscribed domain {operation["description"]}")
+                                post_commit_logs.append(
+                                    f"{block['signer']} inscribed domain {operation['description']}",
+                                )
                         elif _is_transfer_instruction(operation):
                             domain = db_session.scalar(
                                 update(DomainModel)
@@ -104,16 +116,24 @@ def listen_instructions(engine: Engine, /) -> None:
                                 .returning(DomainModel),
                             )
                             if isinstance(domain, DomainModel):
-                                post_commit_logs.append(f"{block["account"]} transferred domain {domain.domain} to {operation["to"]}")
+                                post_commit_logs.append(
+                                    f"{block['account']} transferred domain {domain.domain} to {operation['to']}",
+                                )
 
-                    settings.last_block_timestamp = block_timestamp
-                    settings.last_block_hash = block["$hash"]
+                    last_block_timestamp = block_timestamp
+                    last_block_hash = block["$hash"]
                     last_block_operations = block["operations"]
 
-                if settings.page != pagination["totalPages"]:
-                    settings.page += 1
+                if current_page != pagination["totalPages"]:
+                    current_page += 1
 
-                db_session.merge(settings)
+                db_session.execute(
+                    update(SettingsModel).values(
+                        page=current_page,
+                        last_block_timestamp=last_block_timestamp,
+                        last_block_hash=last_block_hash,
+                    ),
+                )
                 db_session.commit()
 
                 for post_commit_log in post_commit_logs:
@@ -121,8 +141,8 @@ def listen_instructions(engine: Engine, /) -> None:
 
                 LOGGER.debug(
                     "Committed settings: page=%s last_block_hash=%s",
-                    settings.page,
-                    settings.last_block_hash,
+                    current_page,
+                    last_block_hash,
                 )
 
             time.sleep(1)
@@ -188,4 +208,7 @@ def _is_inscribe_instruction(
 
 
 def _is_transfer_instruction(operation: dict[str, Any], /) -> bool:
-    return operation["type"] == OperationType.SEND and operation["amount"] == "0x1"
+    return (
+        operation["type"] == OperationType.SEND
+        and operation["amount"] == "0x1"
+    )
