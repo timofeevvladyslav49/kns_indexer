@@ -1,11 +1,10 @@
 import logging
+import re
 import time
 from datetime import datetime
 from enum import IntEnum, unique
 from typing import Any, Final, final
 
-import orjson
-import tldextract
 from requests import Session
 from sqlalchemy import Engine, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -22,6 +21,8 @@ LAUNCH_DATE: Final = "2025-11-20"
 
 TOKEN_NAME: Final = "KNS"
 DOMAIN: Final = "keeta"
+
+USERNAME_PATTERN: Final = re.compile(r"^[A-Za-z0-9_]{1,32}$")
 
 
 @final
@@ -93,7 +94,7 @@ def listen_instructions(engine: Engine, /) -> None:
                             domain = db_session.scalar(
                                 insert(DomainModel)
                                 .values(
-                                    domain=operation["description"],
+                                    domain=operation["description"].lower(),
                                     address=block["account"],
                                     owner=block["signer"],
                                     timestamp=block_timestamp,
@@ -103,7 +104,7 @@ def listen_instructions(engine: Engine, /) -> None:
                             )
                             if isinstance(domain, DomainModel):
                                 post_commit_logs.append(
-                                    f"{block['signer']} inscribed domain {operation['description']}",
+                                    f"{block['signer']} inscribed domain {operation['description'].lower()}",
                                 )
                         elif _is_transfer_instruction(operation):
                             domain = db_session.scalar(
@@ -158,7 +159,7 @@ def _get_pagination(session: Session, /, *, page: int) -> dict[str, str | int]:
             "dateFrom": LAUNCH_DATE,
         },
     ) as response:
-        return orjson.loads(response.content)
+        return response.json()
 
 
 def _get_history(
@@ -174,7 +175,7 @@ def _get_history(
         f"{KEETA_BASE_URL}/api/node/ledger/history",
         params=params,
     ) as response:
-        return orjson.loads(response.content)
+        return response.json()
 
 
 def _get_sorted_blocks(history: dict[str, Any], /) -> list[Any]:
@@ -198,7 +199,7 @@ def _is_inscribe_instruction(
     return (
         operation["type"] == OperationType.SET_INFO
         and operation["name"] == TOKEN_NAME
-        and tldextract.extract(operation["description"]).domain == DOMAIN
+        and USERNAME_PATTERN.match(operation["description"].lower())
         and any(
             token_account == operation["identifier"]
             for operation in last_block_operations
