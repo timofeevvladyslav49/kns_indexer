@@ -33,7 +33,6 @@ Every KNS name is a token living on the Keeta blockchain. This design unlocks:
 | Status | Feature                  | Description                                                                |
 |--------|--------------------------|----------------------------------------------------------------------------|
 | ⏳      | Primary name             | Set and resolve primary name per address                                   |
-| ⏳      | IPFS content resolution  | Enable decentralized websites                                              |
 | ⏳      | Public REST API          | Allow dApps and wallets to resolve names and search without running a node |
 | ⏳      | Comprehensive test suite | Unit, integration, and e2e tests                                           |
 | ⏳      | Full migration to Go     | Significant performance boost and lower resource usage                     |

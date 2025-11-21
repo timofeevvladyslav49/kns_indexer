@@ -12,6 +12,7 @@ class UsernameModel(Base):
     username: Mapped[str] = mapped_column(primary_key=True)
     address: Mapped[str]
     owner: Mapped[str]
+    cid: Mapped[str | None]
     timestamp: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
     )
