@@ -3,6 +3,7 @@ from typing import final
 
 from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import expression
 
 from kns_indexer.models.base import Base
 
@@ -13,6 +14,10 @@ class UsernameModel(Base):
     address: Mapped[str]
     owner: Mapped[str]
     cid: Mapped[str | None]
+    primary: Mapped[bool] = mapped_column(
+        default=False,
+        server_default=expression.false(),
+    )
     timestamp: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
     )

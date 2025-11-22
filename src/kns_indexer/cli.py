@@ -27,9 +27,7 @@ def main() -> None:
 
     with engine.connect() as connection:
         connection.execute(
-            insert(SettingsModel)
-            .values(id=1, page=1)
-            .on_conflict_do_nothing(),
+            insert(SettingsModel).values(id=1, page=1).on_conflict_do_nothing(),
         )
         connection.commit()
 

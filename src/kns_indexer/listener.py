@@ -20,12 +20,13 @@ TRANSACTIONS_PAGE_LIMIT: Final = 100
 LAUNCH_DATE: Final = "2025-11-20"
 
 TOKEN_NAME: Final = "KNS"
-USERNAME_PATTERN: Final = re.compile(r"^[A-Za-z0-9_]{1,32}$")
+USERNAME_PATTERN: Final = re.compile(r"^@[A-Za-z0-9_]{1,32}$")
 
 FAUCET_ADDRESS: Final = (  # since Keeta Network does not have an official burn address, we will use testnet faucet address as the burn address
     "keeta_aabszsbrqppriqddrkptq5awubshpq3cgsoi4rc624xm6phdt74vo5w7wipwtmiw"
 )
 
+SET_PRIMARY_NAME_PATTERN: Final = re.compile(r"^set_primary_name (\w+)$")
 SET_CID_PATTERN: Final = re.compile(r"^set_cid (\w+) (\w+)$")
 
 
@@ -113,7 +114,35 @@ def listen_instructions(engine: Engine, /) -> None:
                         elif _is_set_primary_name_or_cid_instruction(
                             operation,
                         ):
-                            if match := SET_CID_PATTERN.match(
+                            if match := SET_PRIMARY_NAME_PATTERN.match(
+                                operation["extra"],
+                            ):
+                                token_address = match.group(0)
+                                username = db_session.scalar(
+                                    update(UsernameModel)
+                                    .values(primary=True)
+                                    .where(
+                                        UsernameModel.address == token_address,
+                                        UsernameModel.owner
+                                        == block["account"],
+                                    )
+                                    .returning(UsernameModel),
+                                )
+                                if isinstance(username, UsernameModel):
+                                    db_session.execute(
+                                        update(UsernameModel)
+                                        .values(primary=False)
+                                        .where(
+                                            UsernameModel.address
+                                            != token_address,
+                                            UsernameModel.owner
+                                            == block["account"],
+                                        ),
+                                    )
+                                    post_commit_logs.append(
+                                        f"{block['account']} set primary name {username.username}",
+                                    )
+                            elif match := SET_CID_PATTERN.match(
                                 operation["extra"],
                             ):
                                 token_address, cid = match.groups()
