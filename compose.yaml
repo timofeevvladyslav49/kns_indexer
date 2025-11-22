@@ -2,6 +2,8 @@ services:
   api:
     build: .
     env_file: .env
+    environment:
+      DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@database:5432/$POSTGRES_DB
     depends_on:
       database:
         condition: service_healthy

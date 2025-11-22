@@ -1,30 +1,22 @@
-FROM astral/uv:0.9.10-alpine3.21 AS builder
-
-ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
-    UV_PYTHON_INSTALL_DIR=/python \
-    UV_PYTHON_PREFERENCE=only-managed
+FROM golang:1.25.4-alpine3.22 AS build-stage
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --compile-bytecode --locked --no-install-project --no-dev
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY . /app
+COPY . .
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev
+RUN CGO_ENABLED=0 GOOS=linux go build -o /kns-indexer
 
-FROM alpine:3.21
+FROM gcr.io/distroless/static-debian12
 
-COPY --from=builder /python /python
-COPY --from=builder /app /app
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
 
-ENV PATH="/app/.venv/bin:$PATH"
+WORKDIR /
 
-WORKDIR /app
+COPY --from=build-stage /kns-indexer /kns-indexer
 
-ENTRYPOINT ["python"]
-CMD ["src/kns_indexer/cli.py"]
+USER nonroot:nonroot
+
+ENTRYPOINT ["/kns-indexer"]

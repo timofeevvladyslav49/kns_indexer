@@ -18,7 +18,7 @@ the "official" one.
 
 ### Current Tech Stack
 
-- **Indexer**: Python (planning migration to Go for better performance)
+- **API/Indexer**: Go
 - **Database**: PostgreSQL
 
 ## Why Token-Based Names Matter
@@ -34,12 +34,11 @@ Every KNS name is a token living on the Keeta blockchain. This design unlocks:
 |--------|--------------------------|----------------------------------------------------------------------------|
 | ⏳      | Public REST API          | Allow dApps and wallets to resolve names and search without running a node |
 | ⏳      | Comprehensive test suite | Unit, integration, and e2e tests                                           |
-| ⏳      | Full migration to Go     | Significant performance boost and lower resource usage                     |
 
 ## Quick Start
 
 ```shell
-git clone https://github.com/yourusername/kns_indexer.git
+git clone https://github.com/timofeevvladyslav49/kns_indexer.git
 cd kns_indexer
 cp .env.example .env
 docker compose up
