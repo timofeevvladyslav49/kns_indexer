@@ -32,14 +32,13 @@ Every KNS name is a token living on the Keeta blockchain. This design unlocks:
 
 | Status | Feature                  | Description                                                                |
 |--------|--------------------------|----------------------------------------------------------------------------|
-| ⏳      | Public REST API          | Allow dApps and wallets to resolve names and search without running a node |
 | ⏳      | Comprehensive test suite | Unit, integration, and e2e tests                                           |
 
 ## Quick Start
-
+ 
 ```shell
-git clone https://github.com/timofeevvladyslav49/kns_indexer.git
-cd kns_indexer
+git clone https://github.com/timofeevvladyslav49/kns_indexer.git kns-indexer
+cd kns-indexer
 cp .env.example .env
 docker compose up
 ```

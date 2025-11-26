@@ -1,0 +1,246 @@
+basePath: /
+definitions:
+  handlers.GetOwnerUsernamesSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.GetOwnerUsernamesSuccessResponseData'
+      status:
+        example: ok
+        type: string
+    type: object
+  handlers.GetOwnerUsernamesSuccessResponseData:
+    properties:
+      total:
+        example: 100
+        type: integer
+      usernames:
+        items:
+          $ref: '#/definitions/models.Username'
+        type: array
+    type: object
+  handlers.GetPrimaryUsernameSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Username'
+      status:
+        example: ok
+        type: string
+    type: object
+  handlers.GetUsernameSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Username'
+      status:
+        example: ok
+        type: string
+    type: object
+  handlers.GetUsernamesSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.GetUsernamesSuccessResponseData'
+      status:
+        example: ok
+        type: string
+    type: object
+  handlers.GetUsernamesSuccessResponseData:
+    properties:
+      total:
+        example: 100
+        type: integer
+      usernames:
+        items:
+          $ref: '#/definitions/models.Username'
+        type: array
+    type: object
+  models.FailureResponse:
+    properties:
+      error:
+        example: description
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  models.Username:
+    properties:
+      address:
+        example: keeta_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        type: string
+      cid:
+        example: Qmaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        type: string
+      isPrimary:
+        example: false
+        type: boolean
+      owner:
+        example: keeta_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        type: string
+      timestamp:
+        example: "2025-11-25T11:22:33.123Z"
+        type: string
+      username:
+        example: username
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a simple API for KNS Indexer
+  title: KNS Indexer API
+  version: "1.0"
+paths:
+  /primary-username/{owner}:
+    get:
+      consumes:
+      - application/json
+      description: Returns primary username by owner
+      parameters:
+      - description: Owner
+        in: path
+        name: owner
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetPrimaryUsernameSuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+      summary: Resolve primary username
+      tags:
+      - owner
+  /usernames:
+    get:
+      consumes:
+      - application/json
+      description: Returns paginated list of all registered usernames with sorting
+        by timestamp
+      parameters:
+      - default: 100
+        description: Number of records per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination (starts from 0)
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: desc
+        description: 'Sort order by timestamp: asc or desc'
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved usernames
+          schema:
+            $ref: '#/definitions/handlers.GetUsernamesSuccessResponse'
+        "422":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+      summary: Get list of usernames
+      tags:
+      - username
+  /usernames/{username}:
+    get:
+      consumes:
+      - application/json
+      description: Returns username record by username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetUsernameSuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+      summary: Resolve username
+      tags:
+      - username
+  /usernames/owner/{owner}:
+    get:
+      consumes:
+      - application/json
+      description: Returns paginated list of registered usernames by owner with sorting
+        by timestamp
+      parameters:
+      - description: Owner
+        in: path
+        name: owner
+        required: true
+        type: string
+      - default: 100
+        description: Number of records per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination (starts from 0)
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: desc
+        description: 'Sort order by timestamp: asc or desc'
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved usernames
+          schema:
+            $ref: '#/definitions/handlers.GetOwnerUsernamesSuccessResponse'
+        "422":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.FailureResponse'
+      summary: Get list of owner usernames
+      tags:
+      - owner
+swagger: "2.0"

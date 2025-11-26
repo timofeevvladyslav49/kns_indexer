@@ -22,6 +22,8 @@ func Run(pool *pgxpool.Pool) {
 		context.Background(), "SELECT page, last_block_timestamp, last_block_hash FROM settings;",
 	).Scan(&page, &lastBlockTimestamp, &lastBlockHash)
 
+	slog.Debug("Fetched settings", "page", page, "lastBlockTimestamp", lastBlockTimestamp, "lastBlockHash", lastBlockHash)
+
 	for {
 		pageMetadata := FetchPageMetadata(page)
 
@@ -37,7 +39,7 @@ func Run(pool *pgxpool.Pool) {
 			blockTimestamp, _ := time.Parse(time.RFC3339Nano, block["date"].(string))
 
 			// skip already processed blocks
-			if lastBlockTimestamp != nil && lastBlockHash != nil && (blockTimestamp.Before(*lastBlockTimestamp) || block["$hash"] == lastBlockHash) {
+			if lastBlockTimestamp != nil && lastBlockHash != nil && (blockTimestamp.Before(*lastBlockTimestamp) || block["$hash"].(string) == *lastBlockHash) {
 				slog.Debug(fmt.Sprintf("Skipping block %v: older or equal to last processed", block["$hash"]))
 				continue
 			}
@@ -89,7 +91,7 @@ func Run(pool *pgxpool.Pool) {
 								fmt.Sprintf("%v set primary name %v", block["account"], username),
 							)
 						}
-					} else if match := SetCidPattern.FindStringSubmatch(operation["extra"].(string)); match != nil {
+					} else if match = SetCidPattern.FindStringSubmatch(operation["extra"].(string)); match != nil {
 						tokenAddress, cid := match[0], match[1]
 
 						var username string
@@ -133,8 +135,8 @@ func Run(pool *pgxpool.Pool) {
 			}
 		}
 
-		if page != pageMetadata["totalPages"] {
-			page += 1
+		if page != int(pageMetadata["totalPages"].(float64)) {
+			page++
 		}
 
 		transaction.Exec(
@@ -146,8 +148,8 @@ func Run(pool *pgxpool.Pool) {
 		)
 		transaction.Commit(context.Background())
 
-		for postCommitLog := range postCommitLogs {
-			slog.Debug("", postCommitLog)
+		for _, postCommitLog := range postCommitLogs {
+			slog.Debug(postCommitLog)
 		}
 
 		slog.Debug("Committed settings", "page", page, "last_block_hash", lastBlockHash)

@@ -2,14 +2,23 @@ package main
 
 import (
 	"context"
+	"kns-indexer/handlers"
+	"kns-indexer/indexer"
 	"log/slog"
 	"os"
 
-	"kns-indexer/indexer"
+	_ "kns-indexer/docs"
 
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/swagger/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// @title KNS Indexer API
+// @version 1.0
+// @description This is a simple API for KNS Indexer
+// @BasePath /
 func main() {
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level:     slog.LevelDebug,
@@ -44,7 +53,7 @@ func main() {
 	);
 	`
 
-	if _, err := conn.Exec(context.Background(), createTablesSql); err != nil {
+	if _, err = conn.Exec(context.Background(), createTablesSql); err != nil {
 		panic(err)
 	}
 
@@ -53,7 +62,7 @@ func main() {
 		panic(err)
 	}
 	if !isSettingsExists {
-		if _, err := conn.Exec(context.Background(), "INSERT INTO settings DEFAULT VALUES;"); err != nil {
+		if _, err = conn.Exec(context.Background(), "INSERT INTO settings DEFAULT VALUES;"); err != nil {
 			panic(err)
 		}
 		slog.Info("Settings created")
@@ -62,6 +71,24 @@ func main() {
 	conn.Release()
 
 	slog.Info("Starting KNS Indexer")
-	defer slog.Info("KNS Indexer stopped!")
-	indexer.Run(pool)
+
+	go indexer.Run(pool)
+
+	app := fiber.New()
+	app.Use(logger.New())
+
+	app.Get("/swagger/*", swagger.HandlerDefault)
+
+	app.Get("/usernames", handlers.NewGetUsernamesHandler(pool))
+	app.Get("/usernames/owner/:owner", handlers.NewGetOwnerUsernamesHandler(pool))
+	app.Get("/usernames/:username", handlers.NewGetUsernameHandler(pool))
+	app.Get("/primary-username/:owner", handlers.NewGetPrimaryUsernameHandler(pool))
+
+	slog.Info("Starting API on :8000")
+
+	if err = app.Listen(":8000"); err != nil {
+		panic(err)
+	}
+
+	slog.Info("KNS Indexer stopped!")
 }
