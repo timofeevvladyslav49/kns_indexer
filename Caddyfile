@@ -1,0 +1,14 @@
+localhost {
+    handle_path /api/* {
+        rate_limit {
+            zone dynamic_example {
+                key {remote_host}
+                events 1
+                window 1s
+            }
+        }
+        reverse_proxy app:8000
+    }
+
+    reverse_proxy app:8000
+}

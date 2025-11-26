@@ -88,7 +88,7 @@ info:
   title: KNS Indexer API
   version: "1.0"
 paths:
-  /primary-username/{owner}:
+  /api/primary-username/{owner}:
     get:
       consumes:
       - application/json
@@ -117,7 +117,7 @@ paths:
       summary: Resolve primary username
       tags:
       - owner
-  /usernames:
+  /api/usernames:
     get:
       consumes:
       - application/json
@@ -163,7 +163,7 @@ paths:
       summary: Get list of usernames
       tags:
       - username
-  /usernames/{username}:
+  /api/usernames/{username}:
     get:
       consumes:
       - application/json
@@ -192,7 +192,7 @@ paths:
       summary: Resolve username
       tags:
       - username
-  /usernames/owner/{owner}:
+  /api/usernames/owner/{owner}:
     get:
       consumes:
       - application/json

@@ -23,7 +23,7 @@ type GetUsernameSuccessResponse = models.SuccessResponse[models.Username]
 // @Success      200  {object}  GetUsernameSuccessResponse
 // @Failure      404  {object}  models.FailureResponse
 // @Failure      500  {object}  models.FailureResponse
-// @Router       /usernames/{username} [get]
+// @Router       /api/usernames/{username} [get]
 func NewGetUsernameHandler(pool *pgxpool.Pool) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		username := ctx.Params("username")

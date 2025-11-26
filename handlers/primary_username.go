@@ -22,7 +22,7 @@ type GetPrimaryUsernameSuccessResponse = models.SuccessResponse[models.Username]
 // @Success      200  {object}  GetPrimaryUsernameSuccessResponse
 // @Failure      404  {object}  models.FailureResponse
 // @Failure      500  {object}  models.FailureResponse
-// @Router       /primary-username/{owner} [get]
+// @Router       /api/primary-username/{owner} [get]
 func NewGetPrimaryUsernameHandler(pool *pgxpool.Pool) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		owner := ctx.Params("owner")

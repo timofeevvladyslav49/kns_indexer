@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/primary-username/{owner}": {
+        "/api/primary-username/{owner}": {
             "get": {
                 "description": "Returns primary username by owner",
                 "consumes": [
@@ -59,7 +59,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/usernames": {
+        "/api/usernames": {
             "get": {
                 "description": "Returns paginated list of all registered usernames with sorting by timestamp",
                 "consumes": [
@@ -124,7 +124,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/usernames/owner/{owner}": {
+        "/api/usernames/owner/{owner}": {
             "get": {
                 "description": "Returns paginated list of registered usernames by owner with sorting by timestamp",
                 "consumes": [
@@ -196,7 +196,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/usernames/{username}": {
+        "/api/usernames/{username}": {
             "get": {
                 "description": "Returns username record by username",
                 "consumes": [

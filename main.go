@@ -77,7 +77,7 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	app.Get("/docs/*", swagger.HandlerDefault)
 
 	app.Get("/usernames", handlers.NewGetUsernamesHandler(pool))
 	app.Get("/usernames/owner/:owner", handlers.NewGetOwnerUsernamesHandler(pool))

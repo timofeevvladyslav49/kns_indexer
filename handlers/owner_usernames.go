@@ -30,7 +30,7 @@ type GetOwnerUsernamesSuccessResponse = models.SuccessResponse[GetOwnerUsernames
 // @Success      200        {object}  GetOwnerUsernamesSuccessResponse                                      "Successfully retrieved usernames"
 // @Failure      422        {object}  models.FailureResponse                                           "Invalid query parameters"
 // @Failure      500        {object}  models.FailureResponse                                           "Internal server error"
-// @Router       /usernames/owner/{owner} [get]
+// @Router       /api/usernames/owner/{owner} [get]
 func NewGetOwnerUsernamesHandler(pool *pgxpool.Pool) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		limitStr := ctx.Query("limit", "100")
