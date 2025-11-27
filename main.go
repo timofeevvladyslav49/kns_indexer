@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
+	_ "kns-indexer/docs"
 	"kns-indexer/handlers"
 	"kns-indexer/indexer"
 	"log/slog"
 	"os"
-
-	_ "kns-indexer/docs"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
@@ -76,6 +75,8 @@ func main() {
 
 	app := fiber.New()
 	app.Use(logger.New())
+
+	app.Get("/*", handlers.NewDomainHandler(pool))
 
 	app.Get("/docs/*", swagger.HandlerDefault)
 

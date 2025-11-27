@@ -1,4 +1,4 @@
-localhost {
+localhost *.localhost {
     handle_path /api/* {
         rate_limit {
             zone dynamic_example {
