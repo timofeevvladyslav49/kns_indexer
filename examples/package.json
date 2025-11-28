@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@keetanetwork/keetanet-client": "^0.14.12",
+    "tsx": "^4.20.6"
+  }
+}

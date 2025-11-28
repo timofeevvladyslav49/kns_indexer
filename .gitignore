@@ -23,3 +23,6 @@ go.work.sum
 
 # IDE
 .idea/
+
+# Dependency directories
+node_modules/
