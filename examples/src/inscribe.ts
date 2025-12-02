@@ -1,7 +1,7 @@
 import * as KeetaNet from '@keetanetwork/keetanet-client';
 
-const username = 'username';
 const tokenName = 'KNS';
+const username = 'username';
 
 async function main() {
     const userAccount = KeetaNet.lib.Account.fromSeed(process.env.SEED, 0);

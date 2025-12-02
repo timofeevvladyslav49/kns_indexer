@@ -7,12 +7,11 @@ import (
 
 const (
 	TransactionsPageLimit = 100
-	LaunchDate            = "2025-11-25"
+	LaunchDate            = "2025-12-02"
 
 	TokenName = "KNS"
 
-	// since Keeta Network doesn't have official burn address, we'll use testnet faucet address as burn address
-	BurnAddress = "keeta_aabszsbrqppriqddrkptq5awubshpq3cgsoi4rc624xm6phdt74vo5w7wipwtmiw"
+	BurnAddress = "keeta_aeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaazpi2nodu"
 )
 
 var (
